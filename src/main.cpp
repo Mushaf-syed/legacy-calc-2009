@@ -1,26 +1,47 @@
-#include<iostream>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include "Loan.h"
 
-using namespace std;
+int main() {
+    long double principal = 0;
+    long double interest = 0;
+    int tenure = 0;
 
-int main(){
-    double loan_amount,interest_rate,number_of_years,total_amount,monthly_amount;
+    // Read config.txt
+    std::ifstream config("config.txt");
+    if(!config) {
+        std::cerr << "Could not open config.txt\n";
+        return 1;
+    }
 
-	cout<<"Enter the loan amount: ";
-	cin>>loan_amount;
-	cout<<endl;
-	cout<<"Enter the interest rate: ";
-	cin>>interest_rate;
-	cout<<endl;
-	cout<<"The number of years: ";
-	cin>>number_of_years;
-	cout<<endl;
+    std::string line;
+    while(std::getline(config, line)) {
+        size_t pos = line.find('=');
+        if(pos == std::string::npos) continue;
 
-	total_amount=(number_of_years*loan_amount)+(number_of_years*loan_amount*(interest_rate/100.00));
-	monthly_amount=total_amount/(number_of_years*12);
+        std::string key = line.substr(0, pos);
+        std::string value = line.substr(pos + 1);
 
-	cout<<"Total amount to be paid: "<<total_amount<<endl;
-	cout<<"Total interest: "<<total_amount-(number_of_years*loan_amount)<<endl;
-	cout<<"Monthly amount to be paid: "<<monthly_amount<<endl;
+        if(key == "principal") principal = std::stold(value);
+        else if(key == "interest") interest = std::stold(value);
+        else if(key == "tenure") tenure = std::stoi(value);
+    }
 
-	return 0;
+    try {
+        Loan loan(principal, interest, tenure);
+        long double emi = loan.calculateEMI();
+
+        std::cout << "Loan Amount: " << loan.getPrincipal() << "\n";
+        std::cout << "Annual Interest Rate: " << loan.getInterest() << "%\n";
+        std::cout << "Tenure (months): " << loan.getTenure() << "\n";
+        std::cout << std::fixed;
+        std::cout.precision(2);
+        std::cout << "Monthly EMI: " << emi << "\n";
+    } catch(const std::invalid_argument& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+        return 1;
+    }
+
+    return 0;
 }

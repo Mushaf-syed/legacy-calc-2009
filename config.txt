@@ -1,3 +1,4 @@
 principal=100000
-annual_rate_percent=12
-tenure_months=360
+interest=12
+tenure=360
+
